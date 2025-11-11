@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReBoot - Віддалена оптимізація та чистка ПК</title>
+    
+    <!-- Підключення Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Підключення шрифту Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Іконки (HeroIcons) -->
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+
+    <style>
+        /* Встановлюємо шрифт Inter як основний */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Плавна прокрутка по якорях */
+        html {
+            scroll-behavior: smooth;
+        }
+        /* Колір акценту */
+        :root {
+            --brand-color: #2563eb; /* Tailwind blue-600 */
+        }
+        .text-brand {
+            color: var(--brand-color);
+        }
+        .bg-brand {
+            background-color: var(--brand-color);
+        }
+        .border-brand {
+            border-color: var(--brand-color);
+        }
+        .ring-brand-focus {
+            --tw-ring-color: var(--brand-color);
+        }
+        /* ===== Додаткові стилі для інтерактиву ===== */
+        /* Reveal-on-scroll */
+        .reveal-hidden {
+            opacity: 0;
+            transform: translateY(18px) scale(0.995);
+            transition: opacity .7s cubic-bezier(.2,.9,.2,1), transform .7s cubic-bezier(.2,.9,.2,1);
+        }
+        .reveal-visible {
+            opacity: 1;
+            transform: none;
+        }
+
+        /* Header на скролі */
+        header.header-scrolled {
+            box-shadow: 0 8px 30px rgba(2,6,23,0.12);
+            backdrop-filter: blur(4px);
+            transition: box-shadow .25s ease, backdrop-filter .25s ease;
+        }
+
+        /* Плаваючий blob у герої */
+        #home { position: relative; overflow: hidden; }
+        .hero-blob {
+            position: absolute;
+            right: -8%;
+            top: -18%;
+            width: 420px;
+            height: 420px;
+            background: radial-gradient(circle at 30% 30%, rgba(37,99,235,0.12), transparent 40%), radial-gradient(circle at 70% 70%, rgba(16,185,129,0.06), transparent 40%);
+            filter: blur(44px);
+            transform-origin: center;
+            animation: blob 10s infinite alternate ease-in-out;
+            pointer-events: none;
+        }
+        @keyframes blob {
+            0% { transform: translate(0,0) scale(1); }
+            50% { transform: translate(-24px,14px) scale(1.06); }
+            100% { transform: translate(0,0) scale(1); }
+        }
+
+        /* Кнопка 'вгору' */
+        #back-to-top {
+            position: fixed;
+            right: 20px;
+            bottom: 28px;
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+            box-shadow: 0 10px 30px rgba(2,6,23,0.12);
+            cursor: pointer;
+            transition: transform .18s ease, opacity .18s ease;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 60;
+        }
+        #back-to-top.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        #back-to-top:active { transform: scale(.96); }
+
+        /* Активний пункт меню */
+        .nav-link-active { color: var(--brand-color) !important; font-weight: 600; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- ==== ХЕДЕР (НАВІГАЦІЯ) ==== -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <!-- Логотип -->
+            <a href="#home" class="text-3xl font-bold text-brand"><img width="175px" src="3120dfef-b6f9-4f1a-9ede-a638430d3988_removalai_preview.png" alt=""></a>
+            
+            <!-- Навігація для десктопу -->
+            <div class="hidden md:flex space-x-6">
+                <a href="#about" class="text-gray-600 hover:text-brand transition duration-300">Про нас</a>
+                <a href="#services" class="text-gray-600 hover:text-brand transition duration-300">Послуги</a>
+                <a href="#pricing" class="text-gray-600 hover:text-brand transition duration-300">Ціни</a>
+                <a href="#team" class="text-gray-600 hover:text-brand transition duration-300">Команда</a>
+                <a href="#contact" class="text-gray-600 hover:text-brand transition duration-300">Контакти</a>
+            </div>
+            
+            <!-- CTA Кнопка (десктоп) -->
+            <a href="#contact" class="hidden md:block bg-brand text-white font-medium py-2 px-5 rounded-lg hover:opacity-90 transition duration-300">
+                Замовити чистку
+            </a>
+
+            <!-- Кнопка мобільного меню -->
+            <button id="mobile-menu-button" class="md:hidden text-gray-700 focus:outline-none">
+                <svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+            </button>
+        </nav>
+        
+        <!-- Мобільне меню (сховане за замовчуванням) -->
+        <div id="mobile-menu" class="md:hidden hidden bg-white shadow-lg border-t border-gray-200">
+            <a href="#about" class="block py-3 px-6 text-gray-600 hover:bg-gray-50">Про нас</a>
+            <a href="#services" class="block py-3 px-6 text-gray-600 hover:bg-gray-50">Послуги</a>
+            <a href="#pricing" class="block py-3 px-6 text-gray-600 hover:bg-gray-50">Ціни</a>
+            <a href="#team" class="block py-3 px-6 text-gray-600 hover:bg-gray-50">Команда</a>
+            <a href="#contact" class="block py-3 px-6 text-gray-600 hover:bg-gray-50">Контакти</a>
+            <a href="#contact" class="block py-4 px-6 bg-brand text-white text-center font-medium rounded-b-lg hover:opacity-90">
+                Замовити чистку
+            </a>
+        </div>
+    </header>
+
+    <main>
+        <!-- ==== СЕКЦІЯ "ГЕРОЙ" (СЛОГАН) ==== -->
+        <section id="home" class="bg-white pt-20 pb-24">
+            <div class="container mx-auto px-6 text-center">
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+                    Ваш комп'ютер "гальмує"?
+                </h1>
+                <h2 class="text-4xl md:text-5xl lg:text-6xl font-bold text-brand leading-tight mt-2">
+                    Повернемо йому швидкість. Онлайн.
+                </h2>
+                <p class="mt-6 text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+                    ReBoot — це професійна діагностика, оптимізація та чистка вашого ПК чи ноутбука через інтернет. Швидко, безпечно та без візиту до сервісного центру.
+                </p>
+                <a href="#pricing" class="mt-10 inline-block bg-brand text-white font-bold text-lg py-4 px-10 rounded-lg hover:opacity-90 transition duration-300 shadow-lg">
+                    Подивитись пакети послуг
+                </a>
+            </div>
+        </section>
+
+        <!-- ==== СЕКЦІЯ "ПРО КОМПАНІЮ" (#about) ==== -->
+        <section id="about" class="py-20 bg-gray-50">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900">
+                        Більше не потрібно нікуди їхати
+                    </h2>
+                    <p class="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+                        Ми вирішуємо вашу проблему тут і зараз, через інтернет.
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                    <!-- Блок про "Біль" клієнта -->
+                    <div class="bg-white p-8 rounded-lg shadow-lg border border-gray-200">
+                        <h3 class="text-2xl font-semibold text-red-600 mb-4">"Біль" нашого клієнта</h3>
+                        <p class="text-gray-600 mb-3">
+                            Ми знаємо, як це дратує. Ваш комп'ютер, якому 2-4 роки, раптом почав сильно гальмувати, програми "зависають", а браузер переповнений рекламою. 
+                        </p>
+                        <p class="text-gray-600">
+                            У вас немає часу розбиратися в цьому самостійно, але й везти ПК в сервіс страшно — раптом нав'яжуть дорогий ремонт "заліза" або будуть тримати його тиждень?
+                        </p>
+                    </div>
+                    
+                    <!-- Блок про "Рішення" ReBoot -->
+                    <div class="bg-white p-8 rounded-lg shadow-lg border border-brand">
+                        <h3 class="text-2xl font-semibold text-brand mb-4">Наше "Remote-First" рішення</h3>
+                        <p class="text-gray-600 mb-3">
+                            Унікальність ReBoot — у зручності. Ми працюємо за принципом "Remote-First" і вирішуємо до 90% програмних проблем (віруси, системне "сміття", оптимізація) за 1-2 години.
+                        </p>
+                        <p class="text-gray-600">
+                            Ви підключаєте нашого майстра через захищену програму, економите свій час та отримуєте прозору фіксовану ціну ще до початку робіт.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==== СЕКЦІЯ "ПОСЛУГИ" (#services) ==== -->
+        <section id="services" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900">
+                        Що ми робимо
+                    </h2>
+                    <p class="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+                        Наші послуги спрямовані на повне програмне "оздоровлення" вашого пристрою.
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Картка послуги 1 -->
+                    <div class="flex flex-col bg-gray-50 p-8 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
+                        <ion-icon name="search-outline" class="text-5xl text-brand mb-4"></ion-icon>
+                        <h3 class="text-2xl font-semibold text-gray-900 mb-3">Глибока діагностика</h3>
+                        <p class="text-gray-600 flex-grow">
+                            Виявляємо справжні причини повільної роботи: аналізуємо системні процеси, стан жорсткого диска та помилки в системі.
+                        </p>
+                    </div>
+                    
+                    <!-- Картка послуги 2 -->
+                    <div class="flex flex-col bg-gray-50 p-8 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
+                        <ion-icon name="trash-bin-outline" class="text-5xl text-brand mb-4"></ion-icon>
+                        <h3 class="text-2xl font-semibold text-gray-900 mb-3">Чистка та Оптимізація</h3>
+                        <p class="text-gray-600 flex-grow">
+                            Видаляємо системне "сміття", тимчасові файли, чистимо реєстр та оптимізуємо автозавантаження, звільняючи ресурси вашого ПК.
+                        </p>
+                    </div>
+                    
+                    <!-- Картка послуги 3 -->
+                    <div class="flex flex-col bg-gray-50 p-8 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
+                        <ion-icon name="shield-checkmark-outline" class="text-5xl text-brand mb-4"></ion-icon>
+                        <h3 class="text-2xl font-semibold text-gray-900 mb-3">Видалення вірусів та реклами</h3>
+                        <p class="text-gray-600 flex-grow">
+                            Безпечно знаходимо та ліквідуємо віруси, шпигунське ПЗ та набридливу рекламу у браузерах, відновлюючи безпеку системи.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==== СЕКЦІЯ "ЯК ЦЕ ПРАЦЮЄ" ==== -->
+        <section class="py-20 bg-gray-100">
+             <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900">
+                        Всього 3 простих кроки
+                    </h2>
+                    <p class="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+                        Процес налаштований для вашої максимальної зручності.
+                    </p>
+                </div>
+                
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                    <!-- Крок 1 -->
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <div class="bg-brand text-white w-16 h-16 rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-6">1</div>
+                        <h3 class="text-2xl font-semibold text-gray-900 mb-3">Залишаєте заявку</h3>
+                        <p class="text-gray-600">
+                            Ви описуєте проблему на сайті або в месенджері. Ми узгоджуємо час та вартість.
+                        </p>
+                    </div>
+                    
+                    <!-- Крок 2 -->
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <div class="bg-brand text-white w-16 h-16 rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-6">2</div>
+                        <h3 class="text-2xl font-semibold text-gray-900 mb-3">Надаєте доступ</h3>
+                        <p class="text-gray-600">
+                            Ви встановлюєте захищену програму (AnyDesk, TeamViewer) і надаєте нам одноразовий код доступу.
+                        </p>
+                    </div>
+                    
+                    <!-- Крок 3 -->
+                    <div class="bg-white p-8 rounded-lg shadow-lg">
+                        <div class="bg-brand text-white w-16 h-16 rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-6">3</div>
+                        <h3 class="text-2xl font-semibold text-gray-900 mb-3">Отримуєте результат</h3>
+                        <p class="text-gray-600">
+                            Наш майстер виконує роботу, а ви спостерігаєте. Після завершення ви отримуєте поради та швидкий ПК.
+                        </p>
+                    </div>
+                 </div>
+            </div>
+        </section>
+
+        <!-- ==== СЕКЦІЯ "ЦІНИ" (#pricing) ==== -->
+        <section id="pricing" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900">
+                        Прозорі та фіксовані ціни
+                    </h2>
+                    <p class="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+                        Ви знаєте кінцеву вартість ще до початку робіт. Жодних прихованих платежів.
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                    <!-- Пакет 1: Базова чистка -->
+                    <div class="flex flex-col bg-gray-50 border border-gray-200 rounded-lg shadow-lg p-8">
+                        <h3 class="text-2xl font-semibold text-gray-900 mb-4">Базова чистка</h3>
+                        <div class="text-4xl font-bold text-gray-900 mb-6">400 грн</div>
+                        <ul class="space-y-3 text-gray-600 mb-8 flex-grow">
+                            <li class="flex items-center">
+                                <ion-icon name="checkmark-circle-outline" class="text-green-500 text-2xl mr-3"></ion-icon>
+                                Чистка системного "сміття"
+                            </li>
+                            <li class="flex items-center">
+                                <ion-icon name="checkmark-circle-outline" class="text-green-500 text-2xl mr-3"></ion-icon>
+                                Очищення кешу браузерів
+                            </li>
+                            <li class="flex items-center">
+                                <ion-icon name="checkmark-circle-outline" class="text-green-500 text-2xl mr-3"></ion-icon>
+                                Поверхнева діагностика
+                            </li>
+                        </ul>
+                        <a href="#contact" class="w-full text-center bg-white border-2 border-brand text-brand font-medium py-3 px-6 rounded-lg hover:bg-brand hover:text-white transition duration-300">
+                            Замовити
+                        </a>
+                    </div>
+                    
+                    <!-- Пакет 2: Повна оптимізація (Рекомендовано) -->
+                    <div class="flex flex-col bg-brand text-white rounded-lg shadow-xl p-8 transform lg:scale-105 relative">
+                        <span class="absolute top-0 right-8 -mt-4 bg-yellow-300 text-yellow-900 text-sm font-bold px-4 py-1 rounded-full">Найпопулярніший</span>
+                        <h3 class="text-2xl font-semibold mb-4">Повна оптимізація</h3>
+                        <div class="text-4xl font-bold mb-6">750 грн</div>
+                        <ul class="space-y-3 opacity-90 mb-8 flex-grow">
+                            <li class="flex items-center">
+                                <ion-icon name="checkmark-circle-outline" class="text-white text-2xl mr-3"></ion-icon>
+                                <strong>Все з пакету "Базовий"</strong>
+                            </li>
+                            <li class="flex items-center">
+                                <ion-icon name="checkmark-circle-outline" class="text-white text-2xl mr-3"></ion-icon>
+                                Глибока чистка реєстру
+                            </li>
+                            <li class="flex items-center">
+                                <ion-icon name="checkmark-circle-outline" class="text-white text-2xl mr-3"></ion-icon>
+                                Оптимізація автозавантаження
+                            </li>
+                            <li class="flex items-center">
+                                <ion-icon name="checkmark-circle-outline" class="text-white text-2xl mr-3"></ion-icon>
+                                Повне сканування на віруси
+                            </li>
+                            <li class="flex items-center">
+                                <ion-icon name="checkmark-circle-outline" class="text-white text-2xl mr-3"></ion-icon>
+                                Консультація з догляду за ПК
+                            </li>
+                        </ul>
+                        <a href="#contact" class="w-full text-center bg-white text-brand font-bold py-3 px-6 rounded-lg hover:bg-gray-100 transition duration-300">
+                            Обрати цей план
+                        </a>
+                    </div>
+                    
+                    <!-- Пакет 3: Преміум -->
+                    <div class="flex flex-col bg-gray-50 border border-gray-200 rounded-lg shadow-lg p-8">
+                        <h3 class="text-2xl font-semibold text-gray-900 mb-4">Преміум Захист</h3>
+                        <div class="text-4xl font-bold text-gray-900 mb-6">1200 грн</div>
+                        <ul class="space-y-3 text-gray-600 mb-8 flex-grow">
+                            <li class="flex items-center">
+                                <ion-icon name="checkmark-circle-outline" class="text-green-500 text-2xl mr-3"></ion-icon>
+                                <strong>Все з "Повної оптимізації"</strong>
+                            </li>
+                            <li class="flex items-center">
+                                <ion-icon name="checkmark-circle-outline" class="text-green-500 text-2xl mr-3"></ion-icon>
+                                Оновлення драйверів
+                            </li>
+                            <li class="flex items-center">
+                                <ion-icon name="checkmark-circle-outline" class="text-green-500 text-2xl mr-3"></ion-icon>
+                                Налаштування антивірусу
+                            </li>
+                            <li class="flex items-center">
+                                <ion-icon name="checkmark-circle-outline" class="text-green-500 text-2xl mr-3"></ion-icon>
+                                Підтримка протягом 14 днів
+                            </li>
+                        </ul>
+                        <a href="#contact" class="w-full text-center bg-white border-2 border-brand text-brand font-medium py-3 px-6 rounded-lg hover:bg-brand hover:text-white transition duration-300">
+                            Замовити
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==== СЕКЦІЯ "КОМАНДА" (#team) ==== -->
+        <section id="team" class="py-20 bg-gray-50">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900">
+                        Наші фахівці
+                    </h2>
+                    <p class="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+                        Люди, які знають, як змусити техніку працювати ідеально.
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-center max-w-4xl mx-auto">
+                    <!-- Член команди 1 -->
+                    <div class="bg-white text-center p-8 rounded-lg shadow-lg">
+                        <img src="https://placehold.co/150x150/e0e7ff/6366f1?text=Іван" alt="[Фото Івана Петренка]" class="w-32 h-32 rounded-full mx-auto mb-5 border-4 border-gray-200">
+                        <h3 class="text-xl font-bold text-gray-900">Іван Петренко</h3>
+                        <p class="text-brand font-medium mb-3">Головний технік</p>
+                        <p class="text-gray-600 text-sm">
+                            10+ років досвіду у системному адмініструванні. Спеціалізується на глибокій оптимізації Windows та вирішенні складних програмних збоїв.
+                        </p>
+                    </div>
+                    
+                    <!-- Член команди 2 -->
+                    <div class="bg-white text-center p-8 rounded-lg shadow-lg">
+                        <img src="https://placehold.co/150x150/e0e7ff/6366f1?text=Олена" alt="[Фото Олени Коваль]" class="w-32 h-32 rounded-full mx-auto mb-5 border-4 border-gray-200">
+                        <h3 class="text-xl font-bold text-gray-900">Олена Коваль</h3>
+                        <p class="text-brand font-medium mb-3">Спеціаліст з кібербезпеки</p>
+                        <p class="text-gray-600 text-sm">
+                            Допоможе позбутися найскладніших вірусів та рекламних банерів. Знає все про безпеку в інтернеті та налаштує ваш антивірус.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- ==== СЕКЦІЯ "КОНТАКТИ" (#contact) ==== -->
+        <section id="contact" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900">
+                        Готові прискорити ваш ПК?
+                    </h2>
+                    <p class="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+                        Залиште заявку, і ми зв'яжемося з вами протягом 30 хвилин для консультації.
+                    </p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <!-- Форма контакту -->
+                    <div id="contact-form-container" class="bg-gray-50 p-8 rounded-lg shadow-lg border border-gray-200">
+                        <form id="contact-form">
+                            <div class="mb-5">
+                                <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Ваше ім'я</label>
+                                <input type="text" id="name" name="name" required
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 ring-brand-focus">
+                            </div>
+                            <div class="mb-5">
+                                <label for="contact-info" class="block text-sm font-medium text-gray-700 mb-2">Телефон або Email</label>
+                                <input type="text" id="contact-info" name="contact-info" required
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 ring-brand-focus"
+                                       placeholder="Як з вами зв'язатися?">
+                            </div>
+                            <div class="mb-6">
+                                <label for="message" class="block text-sm font-medium text-gray-700 mb-2">Опишіть вашу проблему</label>
+                                <textarea id="message" name="message" rows="4" required
+                                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 ring-brand-focus"
+                                          placeholder="Наприклад: 'Ноутбук довго завантажується, з'являється реклама...'"></textarea>
+                            </div>
+                            <button type="submit"
+                                    class="w-full bg-brand text-white font-bold text-lg py-4 px-10 rounded-lg hover:opacity-90 transition duration-300 shadow-lg">
+                                Надіслати заявку
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- Інформація про контакти -->
+                    <div class="space-y-6">
+                        <h3 class="text-2xl font-semibold text-gray-900">Або зв'яжіться напряму:</h3>
+                        <div class="flex items-center space-x-4">
+                            <ion-icon name="call-outline" class="text-4xl text-brand"></ion-icon>
+                            <div>
+                                <h4 class="text-lg font-semibold">Телефон</h4>
+                                <a href="tel:+380991234567" class="text-gray-600 hover:text-brand">+38 (099) 123-45-67</a>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <ion-icon name="mail-outline" class="text-4xl text-brand"></ion-icon>
+                            <div>
+                                <h4 class="text-lg font-semibold">Email</h4>
+                                <a href="mailto:support@reboot.ua" class="text-gray-600 hover:text-brand">support@reboot.ua</a>
+                            </div>
+                        </div>
+                         <div class="flex items-center space-x-4">
+                            <ion-icon name="logo-telegram" class="text-4xl text-brand"></ion-icon>
+                            <div>
+                                <h4 class="text-lg font-semibold">Telegram / Viber</h4>
+                                <a href="#" class="text-gray-600 hover:text-brand">@reboot_support</a>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <ion-icon name="time-outline" class="text-4xl text-brand"></ion-icon>
+                            <div>
+                                <h4 class="text-lg font-semibold">Години роботи</h4>
+                                <p class="text-gray-600">Пн - Сб: 9:00 - 19:00</p>
+                                <p class="text-gray-600">Нд: Вихідний</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ==== ФУТЕР ==== -->
+    <footer class="bg-gray-800 text-gray-300 py-10">
+        <div class="container mx-auto px-6 text-center">
+            <a href="#home" class="text-2xl font-bold text-white mb-4 inline-block">ReBoot</a>
+            <div class="flex justify-center space-x-6 mb-6">
+                <a href="#about" class="hover:text-white transition duration-300">Про нас</a>
+                <a href="#services" class="hover:text-white transition duration-300">Послуги</a>
+                <a href="#pricing" class="hover:text-white transition duration-300">Ціни</a>
+                <a href="#contact" class="hover:text-white transition duration-300">Контакти</a>
+            </div>
+            <p class="text-sm text-gray-400">
+                © 2025 ReBoot. Всі права захищено. <a href="#" class="hover:text-white underline">Політика конфіденційності</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- ==== JavaScript: інтерактивні фічі (меню, reveal, active-nav, back-to-top) ==== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const contactFormContainer = document.getElementById('contact-form-container');
+            const contactForm = document.getElementById('contact-form');
+            const header = document.querySelector('header');
+
+            // ===== Мобільне меню =====
+            if (menuButton && mobileMenu) {
+                menuButton.addEventListener('click', function() {
+                    mobileMenu.classList.toggle('hidden');
+                });
+
+                mobileMenu.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        mobileMenu.classList.add('hidden');
+                    });
+                });
+            }
+
+            // ===== Контактна форма: показ повідомлення замість відправки =====
+            if (contactForm && contactFormContainer) {
+                contactForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const name = (e.target.name && e.target.name.value) ? e.target.name.value : '';
+                    const successMessage = `
+                        <div class="text-center p-10">
+                            <ion-icon name="checkmark-circle-outline" class="text-7xl text-green-500 mx-auto"></ion-icon>
+                            <h3 class="text-2xl font-bold text-gray-900 mt-4">Дякуємо, ${name}!</h3>
+                            <p class="text-gray-600 mt-2 text-lg">
+                                Вашу заявку отримано. Ми зв'яжемося з вами найближчим часом.
+                            </p>
+                        </div>
+                    `;
+                    contactFormContainer.innerHTML = successMessage;
+                });
+            }
+
+            // ===== Header: тінь при прокрутці =====
+            const onScrollHeader = () => {
+                if (window.scrollY > 18) header.classList.add('header-scrolled');
+                else header.classList.remove('header-scrolled');
+            };
+            onScrollHeader();
+            window.addEventListener('scroll', throttle(onScrollHeader, 120));
+
+            // ===== Reveal-on-scroll (intersection observer) =====
+            const revealSelectors = ['.grid > div', '.bg-white', '.bg-gray-50', '.container .text-center', '.flex .bg-white'];
+            const revealCandidates = new Set();
+            revealSelectors.forEach(sel => {
+                document.querySelectorAll(sel).forEach(el => revealCandidates.add(el));
+            });
+
+            const revealObserver = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('reveal-visible');
+                        entry.target.classList.remove('reveal-hidden');
+                        obs.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.12 });
+
+            revealCandidates.forEach(el => {
+                el.classList.add('reveal-hidden');
+                revealObserver.observe(el);
+            });
+
+            // ===== Active nav link by section in view =====
+            const navLinks = Array.from(document.querySelectorAll('nav a[href^="#"], #mobile-menu a[href^="#"]'));
+            const sections = Array.from(document.querySelectorAll('main section[id]'));
+
+            const sectionObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        navLinks.forEach(a => {
+                            if (a.getAttribute('href') === ('#' + id)) a.classList.add('nav-link-active');
+                            else a.classList.remove('nav-link-active');
+                        });
+                    }
+                });
+            }, { rootMargin: '-40% 0px -40% 0px', threshold: 0 });
+            sections.forEach(s => sectionObserver.observe(s));
+
+            // ===== Back-to-top: створюємо кнопку динамічно =====
+            const backBtn = document.createElement('button');
+            backBtn.id = 'back-to-top';
+            backBtn.title = 'Нагору';
+            backBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-brand" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg>';
+            document.body.appendChild(backBtn);
+
+            const checkBackBtn = () => {
+                if (window.scrollY > 420) backBtn.classList.add('show');
+                else backBtn.classList.remove('show');
+            };
+            checkBackBtn();
+            window.addEventListener('scroll', throttle(checkBackBtn, 120));
+            backBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+            // ===== Додаємо плаваючий blob у герої =====
+            const hero = document.getElementById('home');
+            if (hero) {
+                const blob = document.createElement('div');
+                blob.className = 'hero-blob';
+                hero.appendChild(blob);
+            }
+
+            // ===== Утиліти =====
+            function throttle(fn, wait) {
+                let last = 0;
+                return function(...args) {
+                    const now = Date.now();
+                    if (now - last >= wait) {
+                        last = now;
+                        fn.apply(this, args);
+                    }
+                };
+            }
+        });
+    </script>
+
+</body>
+</html>
